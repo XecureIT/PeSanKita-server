@@ -1,0 +1,8 @@
+target
+local.properties
+.idea
+*.iml
+run.sh
+*~
+.opsmanage
+put.sh

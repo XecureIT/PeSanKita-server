@@ -1,0 +1,68 @@
+twilio: # Twilio SMS gateway configuration
+  accountId:
+  accountToken:
+  numbers:
+  localDomain: # The domain Twilio can call back to.
+
+firstwap: # Firstwap Configuration
+  url: 
+  username: 
+  password: 
+  senderId: 
+
+push: # GCM/APN push server configuration
+  host:
+  port:
+  username:
+  password:
+
+s3: # AWS S3 configuration
+  accessKey: 
+  accessSecret: 
+
+  # Name of the S3 bucket (needs to have been created)
+  # for attachments to go.  Should be configured with
+  # correct permissions.
+  attachmentsBucket:
+
+directory: # Redis server configuration for TS directory
+  url:
+
+cache: # Redis server configuration for general purpose caching
+  url:
+
+websocket:
+  enabled: true
+
+messageStore: # Postgres database configuration for message store
+  driverClass: org.postgresql.Driver
+  user:
+  password:
+  url:
+
+database: # Postgres database configuration for account store
+  # the name of your JDBC driver
+  driverClass: org.postgresql.Driver
+
+  # the username
+  user:
+
+  # the password
+  password:
+
+  # the JDBC URL
+  url: jdbc:postgresql://somehost:somport/somedb
+
+  # any properties specific to your JDBC driver:
+  properties:
+    charSet: UTF-8
+
+federation:
+  name:
+  peers: 
+    -
+      name: somepeer
+      url: https://foo.com
+      authenticationToken: foo
+      certificate: in pem format 
+
