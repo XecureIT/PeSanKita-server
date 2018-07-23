@@ -28,7 +28,7 @@ import org.whispersystems.textsecuregcm.federation.NoSuchPeerException;
 import org.whispersystems.textsecuregcm.limits.RateLimiters;
 import org.whispersystems.textsecuregcm.storage.Account;
 import org.whispersystems.textsecuregcm.util.Conversions;
-import org.whispersystems.textsecuregcm.util.UrlSigner;
+import org.whispersystems.textsecuregcm.s3.UrlSigner;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,7 +40,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import io.dropwizard.auth.Auth;
@@ -103,14 +102,10 @@ public class AttachmentController {
   }
 
   private long generateAttachmentId() {
-    try {
-      byte[] attachmentBytes = new byte[8];
-      SecureRandom.getInstance("SHA1PRNG").nextBytes(attachmentBytes);
+    byte[] attachmentBytes = new byte[8];
+    new SecureRandom().nextBytes(attachmentBytes);
 
-      attachmentBytes[0] = (byte)(attachmentBytes[0] & 0x7F);
-      return Conversions.byteArrayToLong(attachmentBytes);
-    } catch (NoSuchAlgorithmException nsae) {
-      throw new AssertionError(nsae);
-    }
+    attachmentBytes[0] = (byte)(attachmentBytes[0] & 0x7F);
+    return Conversions.byteArrayToLong(attachmentBytes);
   }
 }

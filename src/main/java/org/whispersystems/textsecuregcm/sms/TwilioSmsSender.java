@@ -54,6 +54,7 @@ public class TwilioSmsSender {
   private final String            accountId;
   private final String            accountToken;
   private final ArrayList<String> numbers;
+  private final String            USNumber;
   private final String            messagingServicesId;
   private final String            localDomain;
   private final Random            random;
@@ -62,6 +63,7 @@ public class TwilioSmsSender {
     this.accountId           = config.getAccountId   ();
     this.accountToken        = config.getAccountToken();
     this.numbers             = new ArrayList<>(config.getNumbers());
+    this.USNumber            = config.getUSNumber();
     this.localDomain         = config.getLocalDomain();
     this.messagingServicesId = config.getMessagingServicesId();
     this.random              = new Random(System.currentTimeMillis());
@@ -76,7 +78,11 @@ public class TwilioSmsSender {
     messageParams.add(new BasicNameValuePair("To", destination));
 
     if (Util.isEmpty(messagingServicesId)) {
-      messageParams.add(new BasicNameValuePair("From", getRandom(random, numbers)));
+      if(destination.startsWith("+1") && !Util.isEmpty(USNumber)) {
+        messageParams.add(new BasicNameValuePair("From", USNumber));
+      } else {
+        messageParams.add(new BasicNameValuePair("From", getRandom(random, numbers)));
+      }
     } else {
       messageParams.add(new BasicNameValuePair("MessagingServiceSid", messagingServicesId));
     }

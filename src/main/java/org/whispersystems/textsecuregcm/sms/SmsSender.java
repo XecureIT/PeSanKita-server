@@ -17,18 +17,20 @@
 package org.whispersystems.textsecuregcm.sms;
 
 import com.google.common.base.Optional;
+import com.twilio.sdk.TwilioRestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class SmsSender {
 
-  static final String SMS_IOS_VERIFICATION_TEXT = "Your PesanKita verification code: %s\n\nOr tap: sgnl://verify/%s";
+  static final String SMS_IOS_VERIFICATION_TEXT = "Your PesanKita verification code: %s";
   static final String SMS_VERIFICATION_TEXT     = "Your PesanKita verification code: %s";
   static final String VOX_VERIFICATION_TEXT     = "Your PesanKita verification code is: ";
 
   private final Logger logger = LoggerFactory.getLogger(SmsSender.class);
 
-  /*
   private final TwilioSmsSender twilioSender;
 
   public SmsSender(TwilioSmsSender twilioSender)
@@ -60,27 +62,26 @@ public class SmsSender {
       logger.info("Twilio Vox Failed: " + e.getErrorMessage());
     }
   }
-  */
   
-  private final FirstwapSmsSender firstwapSmsSender;
+ //  private final FirstwapSmsSender firstwapSmsSender;
   
-  public SmsSender(FirstwapSmsSender firstwapSmsSender)
-  {
-    this.firstwapSmsSender = firstwapSmsSender;
-  }
+ //  public SmsSender(FirstwapSmsSender firstwapSmsSender)
+ //  {
+ //    this.firstwapSmsSender = firstwapSmsSender;
+ //  }
   
-  public void deliverSmsVerification(String destination, Optional<String> clientType, String verificationCode)
-  {
-	try {
-	  firstwapSmsSender.deliverSmsVerification(destination, clientType, verificationCode);
-	} catch (Exception e) {
-      logger.info("Firstwap SMS Failed: " + e.getMessage());
-	}
-  }
+ //  public void deliverSmsVerification(String destination, Optional<String> clientType, String verificationCode)
+ //  {
+	// try {
+	//   firstwapSmsSender.deliverSmsVerification(destination, clientType, verificationCode);
+	// } catch (Exception e) {
+ //      logger.info("Firstwap SMS Failed: " + e.getMessage());
+	// }
+ //  }
 
-  public void deliverVoxVerification(String destination, String verificationCode)
-  {
-    logger.error("voice verification is not implemented and not used!");
-  }
+ //  public void deliverVoxVerification(String destination, String verificationCode)
+ //  {
+ //    logger.error("voice verification is not implemented and not used!");
+ //  }
   
 }

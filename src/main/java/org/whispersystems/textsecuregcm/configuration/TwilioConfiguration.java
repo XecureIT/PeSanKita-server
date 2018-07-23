@@ -36,6 +36,9 @@ public class TwilioConfiguration {
   @JsonProperty
   private List<String> numbers;
 
+  @JsonProperty
+  private String USNumber;
+
 //  @NotEmpty
   @JsonProperty
   private String localDomain;
@@ -53,6 +56,10 @@ public class TwilioConfiguration {
 
   public List<String> getNumbers() {
     return numbers;
+  }
+
+  public String getUSNumber() {
+    return USNumber;
   }
 
   public String getLocalDomain() {

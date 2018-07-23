@@ -53,13 +53,15 @@ public class WebSocketConnection implements DispatchChannel {
   private final Account          account;
   private final Device           device;
   private final WebSocketClient  client;
+  private final String           connectionId;
 
   public WebSocketConnection(PushSender pushSender,
                              ReceiptSender receiptSender,
                              MessagesManager messagesManager,
                              Account account,
                              Device device,
-                             WebSocketClient client)
+                             WebSocketClient client,
+                             String connectionId)
   {
     this.pushSender      = pushSender;
     this.receiptSender   = receiptSender;
@@ -67,6 +69,7 @@ public class WebSocketConnection implements DispatchChannel {
     this.account         = account;
     this.device          = device;
     this.client          = client;
+    this.connectionId    = connectionId;
   }
 
   @Override
@@ -80,6 +83,11 @@ public class WebSocketConnection implements DispatchChannel {
           break;
         case PubSubMessage.Type.DELIVER_VALUE:
           sendMessage(Envelope.parseFrom(pubSubMessage.getContent()), Optional.<Long>absent(), false);
+          break;
+        case PubSubMessage.Type.CONNECTED_VALUE:
+          if (pubSubMessage.hasContent() && !new String(pubSubMessage.getContent().toByteArray()).equals(connectionId)) {
+            client.hardDisconnectQuietly();
+          }
           break;
         default:
           logger.warn("Unknown pubsub message: " + pubSubMessage.getType().getNumber());
@@ -141,7 +149,7 @@ public class WebSocketConnection implements DispatchChannel {
 
   private void requeueMessage(Envelope message) {
     int     queueDepth = pushSender.getWebSocketSender().queueMessage(account, device, message);
-    boolean fallback   = !message.getSource().equals(account.getNumber());
+    boolean fallback   = !message.getSource().equals(account.getNumber()) && message.getType() != Envelope.Type.RECEIPT;
 
     try {
       pushSender.sendQueuedNotification(account, device, queueDepth, fallback);
@@ -189,6 +197,10 @@ public class WebSocketConnection implements DispatchChannel {
       }
 
       sendMessage(builder.build(), Optional.of(message.getId()), !iterator.hasNext() && messages.hasMore());
+    }
+
+    if (!messages.hasMore()) {
+      client.sendRequest("PUT", "/api/v1/queue/empty", null, Optional.<byte[]>absent());
     }
   }
 }

@@ -29,6 +29,7 @@ import org.whispersystems.textsecuregcm.auth.AuthorizationHeader;
 import org.whispersystems.textsecuregcm.auth.AuthorizationToken;
 import org.whispersystems.textsecuregcm.auth.AuthorizationTokenGenerator;
 import org.whispersystems.textsecuregcm.auth.InvalidAuthorizationHeaderException;
+import org.whispersystems.textsecuregcm.auth.StoredVerificationCode;
 import org.whispersystems.textsecuregcm.auth.TurnToken;
 import org.whispersystems.textsecuregcm.auth.TurnTokenGenerator;
 import org.whispersystems.textsecuregcm.entities.AccountAttributes;
@@ -137,8 +138,11 @@ public class AccountController {
         throw new WebApplicationException(Response.status(422).build());
     }
 
-    VerificationCode verificationCode = generateVerificationCode(number);
-    pendingAccounts.store(number, verificationCode.getVerificationCode());
+    VerificationCode       verificationCode       = generateVerificationCode(number);
+    StoredVerificationCode storedVerificationCode = new StoredVerificationCode(verificationCode.getVerificationCode(),
+                                                                               System.currentTimeMillis());
+
+    pendingAccounts.store(number, storedVerificationCode);
 
     if (testDevices.containsKey(number)) {
       // noop
@@ -168,11 +172,9 @@ public class AccountController {
 
       rateLimiters.getVerifyLimiter().validate(number);
 
-      Optional<String> storedVerificationCode = pendingAccounts.getCodeForNumber(number);
+      Optional<StoredVerificationCode> storedVerificationCode = pendingAccounts.getCodeForNumber(number);
 
-      if (!storedVerificationCode.isPresent() ||
-          !verificationCode.equals(storedVerificationCode.get()))
-      {
+      if (!storedVerificationCode.isPresent() || !storedVerificationCode.get().isValid(verificationCode)) {
         throw new WebApplicationException(Response.status(403).build());
       }
 
@@ -250,6 +252,13 @@ public class AccountController {
   @Consumes(MediaType.APPLICATION_JSON)
   public void setGcmRegistrationId(@Auth Account account, @Valid GcmRegistrationId registrationId) {
     Device device = account.getAuthenticatedDevice().get();
+
+    if (device.getGcmId() != null &&
+        device.getGcmId().equals(registrationId.getGcmRegistrationId()))
+    {
+      return;
+    }
+
     device.setApnId(null);
     device.setVoipApnId(null);
     device.setGcmId(registrationId.getGcmRegistrationId());
@@ -351,16 +360,12 @@ public class AccountController {
   }
 
   @VisibleForTesting protected VerificationCode generateVerificationCode(String number) {
-    try {
-      if (testDevices.containsKey(number)) {
-        return new VerificationCode(testDevices.get(number));
-      }
-
-      SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-      int randomInt       = 100000 + random.nextInt(900000);
-      return new VerificationCode(randomInt);
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
+    if (testDevices.containsKey(number)) {
+      return new VerificationCode(testDevices.get(number));
     }
+
+    SecureRandom random = new SecureRandom();
+    int randomInt       = 100000 + random.nextInt(900000);
+    return new VerificationCode(randomInt);
   }
 }
